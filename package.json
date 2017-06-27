@@ -1,0 +1,32 @@
+{
+  "name": "uit-sample",
+  "version": "1.0.0",
+  "description": "How to use uit",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "serve": "./node_modules/.bin/http-server ./public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AntonLapshin/uit-sample.git"
+  },
+  "keywords": [
+    "uit",
+    "sample",
+    "components",
+    "html",
+    "css",
+    "modules",
+    "lightweight"
+  ],
+  "author": "AntonLapshin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/AntonLapshin/uit-sample/issues"
+  },
+  "homepage": "https://github.com/AntonLapshin/uit-sample#readme",
+  "devDependencies": {
+    "http-server": "^0.10.0"
+  }
+}

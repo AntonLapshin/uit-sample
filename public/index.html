@@ -1,0 +1,46 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+
+  <title>uit Sample</title>
+  <meta name="description" content="uit sample">
+  <meta name="author" content="AntonLapshin">
+  <link href="//cdnjs.cloudflare.com/ajax/libs/materialize/0.98.2/css/materialize.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/materialize/0.98.2/js/materialize.min.js"></script>
+  <script src="lib/uit.js"></script>
+
+</head>
+
+<body>
+  <div id="app"></div>
+  <div class="input-field inline">
+    <input id="text" type="text" class="validate">
+    <label for="text">Enter a new task here</label>
+  </div>
+  <a class="btn-floating btn-large waves-effect waves-light red"><i class="material-icons">add</i></a>
+  <div class="todo-list card" materialize>
+    <div class="header light-blue darken-2 white-text">
+      <span>ToDo List</span>
+    </div>
+    <div class="item completed">
+      <input checked="checked" type="checkbox" id="todo1" />
+      <label for="todo1">Learn React</label>
+    </div>
+    <div class="item">
+      <input type="checkbox" id="todo2" />
+      <label for="todo2">Forget React</label>
+    </div>
+  </div>
+  <a class="waves-effect waves-light light-blue darken-2 btn filter disabled">All</a>
+  <a class="waves-effect waves-light light-blue darken-2 btn filter">Done</a>
+  <a class="waves-effect waves-light light-blue darken-2 btn filter">Active</a>
+  <script src="js/main.js" defer async></script>
+</body>
+
+</html>

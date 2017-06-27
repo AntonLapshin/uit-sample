@@ -1,0 +1,10 @@
+.item {
+  padding: 1em;
+  cursor: pointer;
+}
+.item:hover {
+  background-color: #f3f3f3;
+}
+.item.completed > label {
+  text-decoration: line-through;
+}
