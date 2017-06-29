@@ -1,7 +1,7 @@
 uit.define("filter", [], ctx => {
   ctx.on("test", () => {
     ctx.set({
-      disabled: false,
+      pressed: true,
       text: "All"
     });
   });

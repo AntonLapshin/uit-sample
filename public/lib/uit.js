@@ -133,7 +133,7 @@ const build = el => {
       }
     }
 
-    el.classList.add(name);
+    el.classList.add(`_${name}`);
     el.setAttribute(opts.DATA_BLOCK_READY_ATTRIBUTE, true);
     el.setAttribute(opts.DATA_BLOCK_PATH_ATTRIBUTE, path);
     el.innerHTML = block.view;
@@ -174,7 +174,9 @@ const lookup = el => {
   const promises = Array.prototype.map.call(els, el => {
     return build(el);
   });
-  return Promise.all(promises);
+  return Promise.all(promises).then(result => {
+    return result[0];
+  });
 };
 
 const getTarget = (ctx, p) => {
@@ -255,6 +257,15 @@ const rules = {
     const className = statement.split(":")[2].trim();
     handle.call(this, path, v => {
       el.classList.toggle(className, getv(v));
+    });
+  },
+  /**
+   * [attr] binding
+   */
+  attr: function(el, path, statement) {
+    const attrName = statement.split(":")[2].trim();
+    handle.call(this, path, v => {
+      el.setAttribute(attrName, getv(v));
     });
   },
   /**
@@ -341,7 +352,9 @@ function dataBind() {
     return matches(el, `[${opts.DATA_BIND_ATTRIBUTE}]`);
   });
   els.forEach(el => {
-    const statements = el.getAttribute(opts.DATA_BIND_ATTRIBUTE).split(",");
+    const bindAttr = el.getAttribute(opts.DATA_BIND_ATTRIBUTE);
+    if (!bindAttr) return;
+    const statements = bindAttr.split(",");
     statements.forEach(statement => {
       const parts = statement.split(":");
       const key = parts[0].trim();
@@ -690,7 +703,7 @@ function append(el, name) {
 }
 
 /**
- * Runs the environment by the selected block via search string
+ * Runs the environment by a selected component via search string
  * @param {selector|string|Element} el - Container
  * @returns {Promise<Block[]>} - List of the added block instances
  */
@@ -698,9 +711,11 @@ function run(el) {
   const search = window.location.search;
   const name = search.length > 0 ? search.substring(1) : null;
 
-  return append(el, name).then(instances => {
-    instances[0].test();
-    return instances;
+  return append(el, name).then(instance => {
+    if (window.uitDebug) {
+      return window.uitDebug.debug(instance);
+    }
+    return instance;
   });
 }
 
@@ -708,6 +723,7 @@ exports.event = event;
 exports.define = define;
 exports.append = append;
 exports.run = run;
+exports.load = load;
 exports.Observable = Observable;
 
 Object.defineProperty(exports, '__esModule', { value: true });

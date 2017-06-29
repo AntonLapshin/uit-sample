@@ -1,6 +1,9 @@
+let uid = 0;
+
 uit.define("todo-list", ["item", "filter"], ctx => {
   ctx.clickHandler = function() {
     const item = {
+      id: `todo_${uid++}`,
       text: ctx.input.value,
       completed: false
     };
@@ -10,29 +13,37 @@ uit.define("todo-list", ["item", "filter"], ctx => {
     });
   };
 
+  ctx.on("set", data => {
+    ctx.children.filter.all.set(data.filters[0]);
+    ctx.children.filter.done.set(data.filters[1]);
+    ctx.children.filter.active.set(data.filters[2]);
+  });
+
   ctx.on("test", () => {
     ctx.set({
       items: [
         {
+          id: "todo_1",
           text: "Learn uit",
           completed: true
         },
         {
+          id: "todo_2",
           text: "Forget uit",
           completed: false
         }
       ],
       filters: [
         {
-          disabled: true,
+          pressed: true,
           text: "All"
         },
         {
-          disabled: false,
+          pressed: false,
           text: "Done"
         },
         {
-          disabled: false,
+          pressed: false,
           text: "Active"
         }
       ]

@@ -1,4 +1,4 @@
 <div class="item" data-bind="class: data.completed: completed">
-  <input checked="checked" type="checkbox" id="todo1" />
-  <label for="todo1" data-bind="text: data.text"></label>
+  <input type="checkbox" data-bind="attr: data.id: id" />
+  <label data-bind="text: data.text, attr: data.id: for"></label>
 </div>
