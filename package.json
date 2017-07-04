@@ -28,5 +28,8 @@
   "homepage": "https://github.com/AntonLapshin/uit-sample#readme",
   "devDependencies": {
     "http-server": "^0.10.0"
+  },
+  "dependencies": {
+    "proxy-observable": "^2.1.0"
   }
 }

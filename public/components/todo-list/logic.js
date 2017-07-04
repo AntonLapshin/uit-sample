@@ -1,5 +1,12 @@
 let uid = 0;
 
+const appendItem = (ctx, item) => {
+  ctx.data.items.push(item);
+  uit.append(ctx.items, "item").then(instance => {
+    instance.set(item);
+  });
+};
+
 uit.define("todo-list", ["item", "filter"], ctx => {
   ctx.clickHandler = function() {
     const item = {
@@ -7,13 +14,12 @@ uit.define("todo-list", ["item", "filter"], ctx => {
       text: ctx.input.value,
       completed: false
     };
-    ctx.data.items.push(item);
-    uit.append(ctx.items, "item").then(instances => {
-      instances[0].set(item);
-    });
+    appendItem(ctx, item);
+    ctx.input.value = "";
   };
 
   ctx.on("set", data => {
+    data.items.forEach(item => appendItem(ctx, item));
     ctx.children.filter.all.set(data.filters[0]);
     ctx.children.filter.done.set(data.filters[1]);
     ctx.children.filter.active.set(data.filters[2]);

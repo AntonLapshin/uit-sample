@@ -40,26 +40,6 @@ const debugTemplate = `
   </div>      
 `;
 
-const debounce = (func, wait, immediate) => {
-  let timeout;
-  return function() {
-    const context = this;
-    const args = arguments;
-    const later = function() {
-      timeout = null;
-      if (!immediate) {
-        func.apply(context, args);
-      }
-    };
-    const callNow = immediate && !timeout;
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-    if (callNow) {
-      func.apply(context, args);
-    }
-  };
-};
-
 const append = (el, html) => {
   const temp = document.createElement("div");
   temp.innerHTML = html;
@@ -80,11 +60,7 @@ const debug = instance => {
     append(document.getElementsByTagName("body")[0], debugTemplate);
     const container = document.getElementById("jsoneditor");
     const editor = new window.JSONEditor(container, {
-      mode: "tree",
-      onChange: debounce(() => {
-        const data = editor.get();
-        instance.set(data);
-      }, 300)
+      mode: "tree"
     });
     instance.once("set", data => {
       editor.set(data);
