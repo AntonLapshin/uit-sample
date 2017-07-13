@@ -1,5 +1,5 @@
 <div class="input-field inline">
-  <input id="text" type="text" data-bind="prop: input">
+  <input id="text" type="text" data-bind="ref: input">
   <label for="text">Enter a new task here</label>
 </div>
 <a class="btn-floating btn-large waves-effect waves-light red" data-bind="click: clickHandler"><i class="material-icons">add</i></a>
@@ -7,8 +7,8 @@
   <div class="header light-blue darken-2 white-text">
     <span>ToDo List</span>
   </div>
-  <div class="items" data-bind="prop: items"></div>
+  <div class="items" data-bind="ref: items"></div>
 </div>
-<span data-block-name="filter" data-block-call="all"></span>
-<span data-block-name="filter" data-block-call="done"></span>
-<span data-block-name="filter" data-block-call="active"></span>
+<span data-uit-name="filter" data-uit-call="all"></span>
+<span data-uit-name="filter" data-uit-call="done"></span>
+<span data-uit-name="filter" data-uit-call="active"></span>
