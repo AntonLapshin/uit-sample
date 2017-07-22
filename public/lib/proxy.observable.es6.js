@@ -4,66 +4,66 @@
 	(global.observable = factory());
 }(this, (function () { 'use strict';
 
-class Observable {
-  constructor(target) {
-    this.callbacks = {};
-    this.target = target;
+class PubSub {
+  /**
+   * Creates an instance of PubSub
+   */
+  constructor() {
+    this.fns = { any: [] };
   }
 
   /**
-   * Checks if a property has at least one subscriber
+   * Checks if a event has at least one subscription
    * 
-   * @param {string} property - Property name
+   * @param {string} e Event name
    * @returns {boolean}
    */
-  has(property) {
-    return property in this.callbacks && this.callbacks[property].length > 0;
+  has(e) {
+    return (e in this.fns && this.fns[e].length > 0) || this.fns.any.length > 0;
   }
 
   /**
-   * Subscribes on property change
+   * Subscribes on event
    * 
-   * @param {string} property - Property name
-   * @param {function} callback
+   * @param {string} e Event name
+   * @param {function} fn Callback
+   * @returns {function} Input callback
+   */
+  on(e, fn) {
+    if (e in this.fns === false) {
+      this.fns[e] = [];
+    }
+    this.fns[e].push(fn);
+    return fn;
+  }
+
+  /**
+   * Calls the event's callbacks
+   * 
+   * @param {string} e Event name
+   * @param {any} value New value
+   * @param {any} prev Previous value
    * @returns {object} Observable
    */
-  on(property, callback) {
-    if (property in this.callbacks === false) {
-      this.callbacks[property] = [];
-    }
-    this.callbacks[property].push(callback);
+  fire(e, value, prev) {
+    this.fns.any
+      .concat(e in this.fns ? this.fns[e] : [])
+      .forEach(fn => fn(value, prev, e));
     return this;
   }
 
   /**
-   * Calls the property's callbacks
+   * Unsubscribes from event
    * 
-   * @param {string} property - Property name
-   * @param {object} value - New value
-   * @returns {object} Observable
+   * @param {function} fn Callback
+   * @returns {boolean} true if successfully unsubscribed
    */
-  change(property, value) {
-    const prev = this.target[property];
-    this.target[property] = value;
-    if (property in this.callbacks) {
-      this.callbacks[property].forEach(с => с(value, prev));
-    }
-    return this;
-  }
-
-  /**
-   * Unsubscribes from property change
-   * 
-   * @param {function} callback
-   * @returns {boolean} if successfully unsubscribed
-   */
-  off(callback) {
-    for (const property in this.callbacks) {
-      const cc = this.callbacks[property];
-      for (let i = 0; i < cc.length; i++) {
-        const c = cc[i];
-        if (c === callback) {
-          cc.splice(i, 1);
+  off(fn) {
+    for (const e in this.fns) {
+      const fns = this.fns[e];
+      for (let i = 0; i < fns.length; i++) {
+        if (fns[i] === fn) {
+          fns.splice(i, 1);
           return true;
         }
       }
@@ -72,68 +72,66 @@ class Observable {
   }
 
   /**
-   * Subscribes on property change once
+   * Subscribes on event once
    * 
-   * @param {string} property 
-   * @param {function} callback 
+   * @param {string} e Event name 
+   * @param {function} fn Callback
+   * @returns {function} Input callback
    */
-  once(property, callback) {
-    const method = value => {
-      const prev = this.target[property];
-      callback(value, prev);
+  once(e, fn) {
+    const method = (value, prev, prop) => {
+      fn(value, prev, prop);
       this.off(method);
     };
-    this.on(property, method);
+    this.on(e, method);
+    return fn;
   }
 }
 
 /**
- * Creates a proxy for an object
+ * Creates a proxy observable for an object or array
  * 
- * @param {object|Proxy} ctx Input Object
- * @returns {Proxy} Proxy Object
+ * @param {object|Observable} target Input Object
+ * @returns {Observable} Observable (ES6 Proxy)
  */
-var proxy = ctx => {
-  if (ctx.on && ctx.off) {
-    return ctx;
+var observable = target => {
+  if (target.on && target.off) {
+    return target;
   }
-  const o = new Observable(ctx);
-  const observable = new Proxy(ctx, {
-    get: (target, property) => {
-      if (property in target) {
-        return target[property];
-      } else if (property === "on") {
-        /**
-         * on: Subscribes on property change
-         * 
-         * @param {string} name Property name
-         * @param {function} callback (value, prev) => {}
-         */
-        return (name, callback) => {
-          if (name in target) {
-            o.change(name, target[name]);
+  const pub = new PubSub();
+  const observable = new Proxy(target, {
+    get: (target, prop) => {
+      if (prop in target) {
+        if (target.constructor === Array) {
+          let v = observable;
+          if (prop === "pop") {
+            v = target[target.length - 1];
+          } else if (prop === "shift") {
+            v = target[0];
           }
-          o.on(name, callback);
-        };
-      } else if (property === "off") {
-        /**
-         * off: Unsubscribes from property change
-         * 
-         * @param {function} callback (value, prev) => {}
-         */
-        return callback => {
-          o.off(callback);
-        };
-      } else {
-        return undefined;
+          if (prop !== "push" && prop !== "length") {
+            pub.fire(prop, v);
+          }
+        }
+        return target[prop];
+      } else if (prop === "on") {
+        return pub.on.bind(pub);
+      } else if (prop === "once") {
+        return pub.once.bind(pub);        
+      } else if (prop === "off") {
+        return pub.off.bind(pub);
       }
+      return undefined;
     },
-    set: (target, property, value) => {
-      if (o.has(property)) {
-        o.change(property, value);
-      } else {
-        target[property] = value;
+    set: (target, prop, v) => {
+      if (target.constructor === Array) {
+        if (prop !== "length") {
+          pub.fire("change", v);
+        }
+      } else if (pub.has(prop)) {
+        pub.fire(prop, v, target[prop]);
       }
+      target[prop] = v;
       return true;
     }
   });
@@ -141,6 +139,6 @@ var proxy = ctx => {
   return observable;
 };
 
-return proxy;
+return observable;
 
 })));
