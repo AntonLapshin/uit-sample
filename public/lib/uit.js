@@ -231,15 +231,17 @@ const rules = {
  * Data-binding feature implementation
  */
 function dataBind() {
-  if (!this.elAll || this.elAll.length === 0) {
+  if (!this.els || this.els.length === 0) {
     return;
   }
-  const els = Array.prototype.filter.call(this.elAll, el => {
+  const els = Array.prototype.filter.call(this.els, el => {
     return el.matches(`[${opts.DATA_BIND_ATTRIBUTE}]`);
   });
   els.forEach(el => {
     const bindAttr = el.getAttribute(opts.DATA_BIND_ATTRIBUTE);
-    if (!bindAttr) return;
+    if (!bindAttr) {
+      return;
+    }
     const statements = bindAttr.split(",");
     statements.forEach(statement => {
       const parts = statement.split(":");
@@ -254,9 +256,6 @@ function dataBind() {
   });
 }
 
-/**
- * TODOs: Add comments
- */
 const opts = {
   DATA_NAME_ATTRIBUTE: "data-uit-name",
   DATA_READY_ATTRIBUTE: "data-uit-ready",
@@ -283,7 +282,7 @@ class Component extends PubSub {
     this.name = name;
     this.path = path;
     this.el = el;
-    this.elAll = el.querySelectorAll(`*:not([${opts.DATA_NAME_ATTRIBUTE}])`);
+    this.els = el.querySelectorAll(`*:not([${opts.DATA_NAME_ATTRIBUTE}])`);
     this.children = {};
     logic && logic(this);
     dataBind.call(this);
@@ -538,11 +537,11 @@ const lookup = el => {
 };
 
 /**
- * Mounts a component into DOM and looks for another components inside
- * @param {Element} el - Container
- * @param {string} name - Name of the component
- * @param {string} html - Input html string
- * @returns {Promise<Component[]>} - List of mounted components
+ * Mounts a component into DOM and looks for child components inside
+ * @param {Element} el Container
+ * @param {string} name Name of the component
+ * @param {string} html Input html string
+ * @returns {Promise<Component[]>} List of mounted components
  * @ignore
  */
 const mount = (el, name, html) => {
@@ -566,12 +565,11 @@ const mount = (el, name, html) => {
  * @ignore
  */
 const loadDeps = (name, deps) => {
-  const baseUrl = opts.BASE_URL + name + "/";
   const promises = deps.map(dep => {
     if (dep.indexOf(".") === -1) {
       return loadComponent(dep);
     }
-    const url = baseUrl + dep;
+    const url = opts.BASE_URL + dep;
     return load(url);
   });
 
@@ -580,8 +578,8 @@ const loadDeps = (name, deps) => {
 
 /**
  * Loads logic + view + style. The define method is called after loading
- * @param {string} name - Name of the component
- * @returns {Promise<object>} - Component definition
+ * @param {string} name Name of the component
+ * @returns {Promise<object>} Component definition
  * @ignore
  */
 const loadComponent = name => {
@@ -593,7 +591,7 @@ const loadComponent = name => {
     event.on(`${name}.load`, component => {
       resolve(component);
     });
-    loadDeps(name, ["logic.js"]);
+    loadDeps(name, [name + ".js"]);
   });
 };
 
@@ -605,26 +603,66 @@ const event = new PubSub();
 /**
  * Defines a new component
  * @param {string} name - Name of the component
- * @param {Array} deps - List of all dependencies
+ * @param {string} view - [Optional] HTML View
+ * @param {string} style - [Optional] CSS
+ * @param {Array<string>} deps - [Optional] List of all dependencies (urls)
  * @param {function} Logic - Logic of the component
  */
-function define(name, deps, Logic) {
+function define(...args) {
+  const name = args[0];
+  const view = typeof args[1] === "string" ? args[1] : null;
+  const style = typeof args[2] === "string" ? args[2] : null;
+  if (style) {
+    const styleTag = document.createElement("style");
+    styleTag.innerHTML = style;
+    document.head.appendChild(styleTag);
+  }
+  let i = view && style ? 3 : view || style ? 2 : 1;
+  let deps = args[i] && args[i].constructor === Array && args[i];
+  if (deps) {
+    i++;
+  } else {
+    deps = [];
+  }
+  const Logic = args[i] && typeof args[i] === "function" && args[i];
   const component = {
     name: name,
+    view: view,
     deps: null
   };
   components[name] = component;
   component.promise = new Promise(resolve => {
-    loadDeps(name, ["view.html", "style.css", ...deps]).then(args => {
-      component.view = args[0];
-      component.deps = args;
-      component.logic = context => {
-        Logic.call(context, context, component.deps);
-      };
+    loadDeps(name, deps).then(res => {
+      if (!view) {
+        component.view = res[0];
+      }
+      component.deps = res;
+      if (Logic) {
+        component.logic = context => {
+          Logic.call(context, context, component.deps);
+          //
+          // Add a testing logic if it exists
+          //
+          if (component.test) {
+            context.on("test", () => {
+              component.test(context);
+            });
+          }
+        };
+      }
       event.fire(`${name}.load`, component);
       resolve(component);
     });
   });
+}
+
+/**
+ * Adds a test method to the component
+ * @param {string} name Name of the component
+ * @param {function} func Test logic (mock data)
+ */
+function test(name, func) {
+  components[name].test = func;
 }
 
 /**
@@ -639,12 +677,16 @@ function append(el, name) {
 
 /**
  * Runs the environment by a selected component via search string
- * @param {selector|string|Element} el - Container
+ * @param {selector|string|Element} el Container
+ * @param {string} name [Optional] Name of the component
  * @returns {Promise<Component[]>} - List of the added component instances
  */
-function run(el) {
-  const search = window.location.search;
-  const name = search.length > 0 ? search.substring(1) : null;
+function run(el, name) {
+  name =
+    name ||
+    (window.location.search.length > 0
+      ? window.location.search.substring(1)
+      : null);
 
   return append(el, name).then(instance => {
     if (window.uitDebug) {
@@ -656,6 +698,7 @@ function run(el) {
 
 exports.event = event;
 exports.define = define;
+exports.test = test;
 exports.append = append;
 exports.run = run;
 exports.load = load;
