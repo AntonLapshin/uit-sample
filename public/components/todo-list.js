@@ -28,6 +28,16 @@ uit.define(
       ctx.children.filter.done.set(data.filters[1]);
       ctx.children.filter.active.set(data.filters[2]);
     });
+
+    const onFilter = text => {
+      console.log(text);
+    };
+
+    ctx.on("load", ()=>{
+      ctx.children.filter.all.on("clicked", onFilter);
+      ctx.children.filter.done.on("clicked", onFilter);
+      ctx.children.filter.active.on("clicked", onFilter);
+    });
   }
 );
 
