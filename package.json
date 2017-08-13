@@ -28,9 +28,9 @@
   },
   "homepage": "https://github.com/AntonLapshin/uit-sample#readme",
   "devDependencies": {
+    "gh-pages": "^1.0.0",
     "http-server": "^0.10.0",
-    "proxy-observable": "^4.0.2",
-    "gh-pages": "^1.0.0"
+    "proxy-observable": "^4.0.2"
   },
   "dependencies": {}
 }
