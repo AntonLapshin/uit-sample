@@ -6,7 +6,7 @@ uit.define(
   </a>`,
   ctx => {
     ctx.onClick = () => {
-      ctx.fire("clicked", ctx.data.text);
+      ctx.fire("click", ctx);
     };    
   }
 );

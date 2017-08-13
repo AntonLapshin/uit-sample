@@ -19,6 +19,7 @@ uit.define(
   ctx => {
     ctx.clickHandler = () => {
       ctx.data.completed = !ctx.data.completed;
+      uit.event.fire("item.click");
     };
   }
 );
