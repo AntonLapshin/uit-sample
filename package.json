@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "serve": "./node_modules/.bin/http-server ./public"
+    "serve": "./node_modules/.bin/http-server ./public",
+    "deploy": "./node_modules/.bin/gh-pages -d public"
   },
   "repository": {
     "type": "git",
@@ -28,7 +29,8 @@
   "homepage": "https://github.com/AntonLapshin/uit-sample#readme",
   "devDependencies": {
     "http-server": "^0.10.0",
-    "proxy-observable": "^4.0.2"
+    "proxy-observable": "^4.0.2",
+    "gh-pages": "^1.0.0"
   },
   "dependencies": {}
 }
